@@ -214,7 +214,9 @@ namespace WorldBuilder
         {
 
           const double distance_from_plane = distance_from_planes.distance_from_plane;
-          const double distance_along_plane = distance_from_planes.distance_along_plane;
+
+          // This is the full distance along the plane
+          const double distance_along_plane_full = distance_from_planes.distance_along_plane;
           const double total_segment_length = additional_parameters.total_local_segment_length;
 
           if (distance_from_plane <= max_depth && distance_from_plane >= min_depth)
@@ -227,7 +229,6 @@ namespace WorldBuilder
                                                                       *(world->parameters.coordinate_system));
               const Point<2> trench_point_2d(trench_point_natural.get_surface_coordinates(),trench_point_natural.get_coordinate_system());
               // find the distance between the trench and ridge
-
 
               // first find if the coordinate is on this side of a ridge
               unsigned int relevant_ridge = 0;
@@ -309,7 +310,6 @@ namespace WorldBuilder
               //  These equations are empirical based on fitting the temperature profiles from dynamic subduction models.
               double min_temperature = 0.0;
               double distance_offset = 0.0;
-
               const double mantle_coupling_length = mantle_coupling_depth / std::sin(shallow_average_dip * Consts::PI / 180.0); //m
 
               /* Empirical model parameters */
@@ -328,6 +328,10 @@ namespace WorldBuilder
               double temperature_min = 750;
               double temperature_max = 950;
 
+			  // This distance is limited to the upper_mantle_length so that the temperature stops increasing
+			  // and the slab width stays constant.
+			  double distance_along_plane = std::min(distance_along_plane_full,upper_mantle_length);
+			  
               double zero = 0.0;
               double one = 1.0;
               double vsubfact = (1 - (plate_velocity - sink_velocity_min) / sink_velocity_max);
@@ -373,13 +377,16 @@ namespace WorldBuilder
               // Taper the heat_content and min temperature to create a smooth slab tip
               const double start_taper_distance =  total_segment_length -  taper_distance;
 
-              if ((distance_along_plane > start_taper_distance) )
+              if ((distance_along_plane_full > start_taper_distance) ) // need real distance relative to start of taper
                 {
-                  initial_heat_content = initial_heat_content * (total_segment_length - distance_along_plane)/taper_distance;
-
-                  min_temperature = surface_temperature + slope_temperature_deep * start_taper_distance + intercept_temperature_deep;
+                  initial_heat_content = initial_heat_content * (total_segment_length - distance_along_plane_full)/taper_distance;
+					
+				  // This is the min_temperature at start_taper_distance, so this can be the value that is tapered
+                  //min_temperature = surface_temperature + slope_temperature_deep * start_taper_distance + intercept_temperature_deep;
+                  min_temperature = surface_temperature + slope_temperature_deep * std::min(start_taper_distance,distance_along_plane) + intercept_temperature_deep;
+                  // here need the real distance from the taper
                   min_temperature =  min_temperature + (( background_temperature - min_temperature)/(total_segment_length - start_taper_distance)) *
-                                     (distance_along_plane - start_taper_distance);
+                                     (distance_along_plane_full - start_taper_distance);
 
                 }
               if (min_temperature < background_temperature)
@@ -389,11 +396,13 @@ namespace WorldBuilder
 
                   // 3. Determine the heat content for side 1 (bottom) of the slab
                   // Comes from integrating the half-space cooling model temperature
+                  // This is the effective_plate_age at the upper_mantle_plate_length (or less)
 
                   double effective_plate_age = plate_age_sec + (distance_along_plane / plate_velocity) * seconds_in_year; // m/(m/y) = y(seconds_in_year)
-                  if (distance_along_plane > start_taper_distance)
+                  
+                  if (distance_along_plane_full > start_taper_distance) // need real distance relative to start of taper
                     {
-                      effective_plate_age = effective_plate_age * (total_segment_length - distance_along_plane)/ (taper_distance);
+                      effective_plate_age = effective_plate_age * (total_segment_length - distance_along_plane_full)/ (taper_distance);
                     }
 
                   const double bottom_heat_content = 2 * thermal_conductivity * (min_temperature - potential_mantle_temperature) *
@@ -403,9 +412,9 @@ namespace WorldBuilder
                   double top_heat_content = initial_heat_content - bottom_heat_content;
 
                   // Also need to taper the top_heat_content otherwise slab top will continue to thicken to the tip.
-                  if (distance_along_plane > start_taper_distance)
+                  if (distance_along_plane_full > start_taper_distance) // need real distance relative to start of taper
                     {
-                      top_heat_content = top_heat_content * (total_segment_length - distance_along_plane)/ (taper_distance);
+                      top_heat_content = top_heat_content * (total_segment_length - distance_along_plane_full)/ (taper_distance);
                     }
                   // Assign the temperature depending on whether distance is negative (above) or positive (below) the slab
                   if (adjusted_distance < 0)
