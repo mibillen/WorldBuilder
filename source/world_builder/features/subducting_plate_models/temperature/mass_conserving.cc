@@ -212,12 +212,12 @@ namespace WorldBuilder
         {
 
           const double distance_from_plane = distance_from_planes.distance_from_plane;
-         
+
           // This is the full distance along the plane
           const double distance_along_plane_full = distance_from_planes.distance_along_plane;
           const double total_segment_length = additional_parameters.total_local_segment_length;
-          
-          const double depth_to_reference_plane = distance_from_planes.depth_reference_plane; 
+
+          const double depth_to_reference_plane = distance_from_planes.depth_reference_plane;
 
           if (distance_from_plane <= max_depth && distance_from_plane >= min_depth)
             {
@@ -327,10 +327,10 @@ namespace WorldBuilder
               double temperature_min = 750;
               double temperature_max = 950;
 
-			  // This distance is limited to the upper_mantle_length so that the temperature stops increasing
-			  // and the slab width stays constant.
-			  double distance_along_plane = std::min(distance_along_plane_full,upper_mantle_length);
-			  
+              // This distance is limited to the upper_mantle_length so that the temperature stops increasing
+              // and the slab width stays constant.
+              double distance_along_plane = std::min(distance_along_plane_full,upper_mantle_length);
+
               double zero = 0.0;
               double one = 1.0;
               double vsubfact = (1 - (plate_velocity - sink_velocity_min) / sink_velocity_max);
@@ -339,7 +339,7 @@ namespace WorldBuilder
               double slope_distance_shallow = slope_distance_min + vsubfact * (slope_distance_max - slope_distance_min);
               double slope_temperature_shallow = slope_temperature_min + vsubfact * (slope_temperature_max - slope_temperature_min);
 
-              double offset_coupling_depth = slope_distance_shallow * mantle_coupling_depth;                    // m 
+              double offset_coupling_depth = slope_distance_shallow * mantle_coupling_depth;                    // m
               double offset_660 = offset_distance_min + vsubfact * (offset_distance_max - offset_distance_min); // m
 
               double slope_distance_deep = (offset_660 - offset_coupling_depth) / (upper_mantle_length - mantle_coupling_depth);
@@ -379,8 +379,8 @@ namespace WorldBuilder
               if ((distance_along_plane_full > start_taper_distance) ) // need real distance relative to start of taper
                 {
                   initial_heat_content = initial_heat_content * (total_segment_length - distance_along_plane_full)/taper_distance;
-					
-				  // This is the min_temperature at start_taper_distance, so this can be the value that is tapered
+
+                  // This is the min_temperature at start_taper_distance, so this can be the value that is tapered
                   //min_temperature = surface_temperature + slope_temperature_deep * start_taper_distance + intercept_temperature_deep;
                   min_temperature = surface_temperature + slope_temperature_deep * std::min(start_taper_distance,distance_along_plane) + intercept_temperature_deep;
                   // here need the real distance from the taper
@@ -398,7 +398,7 @@ namespace WorldBuilder
                   // This is the effective_plate_age at the upper_mantle_plate_length (or less)
 
                   double effective_plate_age = plate_age_sec + (distance_along_plane / plate_velocity) * seconds_in_year; // m/(m/y) = y(seconds_in_year)
-                  
+
                   if (distance_along_plane_full > start_taper_distance) // need real distance relative to start of taper
                     {
                       effective_plate_age = effective_plate_age * (total_segment_length - distance_along_plane_full)/ (taper_distance);
