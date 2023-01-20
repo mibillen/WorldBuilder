@@ -50,7 +50,6 @@ namespace WorldBuilder
           density(NaN::DSNAN),
           plate_velocity(NaN::DSNAN),
           mantle_coupling_depth(NaN::DSNAN),
-          shallow_average_dip(NaN::DSNAN),
           thermal_conductivity(NaN::DSNAN),
           thermal_expansion_coefficient(NaN::DSNAN),
           specific_heat(NaN::DSNAN),
@@ -167,7 +166,6 @@ namespace WorldBuilder
           plate_velocity = prm.get<double>("plate velocity");
 
           mantle_coupling_depth = prm.get<double>("coupling depth");
-          shallow_average_dip = prm.get<double>("shallow dip");
 
           taper_distance = prm.get<double>("taper distance");
 
@@ -214,10 +212,12 @@ namespace WorldBuilder
         {
 
           const double distance_from_plane = distance_from_planes.distance_from_plane;
-
+         
           // This is the full distance along the plane
           const double distance_along_plane_full = distance_from_planes.distance_along_plane;
           const double total_segment_length = additional_parameters.total_local_segment_length;
+          
+          const double depth_to_reference_plane = distance_from_planes.depth_reference_plane; 
 
           if (distance_from_plane <= max_depth && distance_from_plane >= min_depth)
             {
@@ -310,7 +310,6 @@ namespace WorldBuilder
               //  These equations are empirical based on fitting the temperature profiles from dynamic subduction models.
               double min_temperature = 0.0;
               double distance_offset = 0.0;
-              const double mantle_coupling_length = mantle_coupling_depth / std::sin(shallow_average_dip * Consts::PI / 180.0); //m
 
               /* Empirical model parameters */
               //double upper_mantle_depth = 660e3;   // m
@@ -340,27 +339,27 @@ namespace WorldBuilder
               double slope_distance_shallow = slope_distance_min + vsubfact * (slope_distance_max - slope_distance_min);
               double slope_temperature_shallow = slope_temperature_min + vsubfact * (slope_temperature_max - slope_temperature_min);
 
-              double offset_coupling_depth = slope_distance_shallow * mantle_coupling_depth;                    // m  mantle_coupling_length
+              double offset_coupling_depth = slope_distance_shallow * mantle_coupling_depth;                    // m 
               double offset_660 = offset_distance_min + vsubfact * (offset_distance_max - offset_distance_min); // m
 
-              double slope_distance_deep = (offset_660 - offset_coupling_depth) / (upper_mantle_length - mantle_coupling_length);
-              double intercept_dist_deep = (slope_distance_shallow - slope_distance_deep) * mantle_coupling_length;
+              double slope_distance_deep = (offset_660 - offset_coupling_depth) / (upper_mantle_length - mantle_coupling_depth);
+              double intercept_dist_deep = (slope_distance_shallow - slope_distance_deep) * mantle_coupling_depth;
 
-              double temperature_min_coupling_depth = slope_temperature_shallow * mantle_coupling_length;
+              double temperature_min_coupling_depth = slope_temperature_shallow * mantle_coupling_depth;
               double temperature_min_660 = temperature_min + vsubfact * (temperature_max - temperature_min);
 
-              double slope_temperature_deep = (temperature_min_660 - temperature_min_coupling_depth) / (upper_mantle_length - mantle_coupling_length);
-              double intercept_temperature_deep = (slope_temperature_shallow - slope_temperature_deep) * (mantle_coupling_length);
+              double slope_temperature_deep = (temperature_min_660 - temperature_min_coupling_depth) / (upper_mantle_length - mantle_coupling_depth);
+              double intercept_temperature_deep = (slope_temperature_shallow - slope_temperature_deep) * (mantle_coupling_depth);
 
-              if (distance_along_plane <= mantle_coupling_length)
+              if (depth_to_reference_plane <= mantle_coupling_depth)
                 {
-                  distance_offset = slope_distance_shallow * distance_along_plane;
-                  min_temperature = surface_temperature + slope_temperature_shallow * distance_along_plane;
+                  distance_offset = slope_distance_shallow * depth_to_reference_plane;
+                  min_temperature = surface_temperature + slope_temperature_shallow * depth_to_reference_plane;
                 }
               else
                 {
-                  distance_offset = slope_distance_deep * distance_along_plane + intercept_dist_deep;
-                  min_temperature = surface_temperature + slope_temperature_deep * distance_along_plane + intercept_temperature_deep;
+                  distance_offset = slope_distance_deep * depth_to_reference_plane + intercept_dist_deep;
+                  min_temperature = surface_temperature + slope_temperature_deep * depth_to_reference_plane + intercept_temperature_deep;
                 }
 
               double temperature = 0.0;
