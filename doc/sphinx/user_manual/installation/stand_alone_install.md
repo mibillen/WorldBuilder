@@ -23,7 +23,7 @@ Stand-alone installation with all apps
 7. For production runs, set build type to release by entering `make release`.
 8. Run make with the amount of threads you want to use (e.g. use 8 processes: `make -j 8`).
 9. If you want the Geodynamic World Builder to be installed on your system, run `sudo make install -j 4`
-10. Run the tests to make sure everything is installed correctly (`ctest`).
+10. Run the tests to make sure everything is installed correctly (`./bin/unit_tests`).
 :::
 ::::
 
