@@ -326,7 +326,7 @@ Traditional citation {cite}`Fraters_Thieulot_etal_2019`.
 Citation as noun {cite:t}`Fraters_Thieulot_etal_2019`.
 Use a comma for multiple, like ({cite:t}`Fraters_Thieulot_etal_2019,Kronbichler_Heister_etal_2012,Heister_Dannberg_etal_2017`.
 
-If the paper you wish to cite is not already in [references.bib](https://github.com/geodynamics/aspect/blob/main/doc/sphinx/bibliography.bib), you will need to add its bibtex entry. Please format the citation tag as:
+If the paper you wish to cite is not already in [references.bib](https://github.com/GeodynamicWorldBuilder/WorldBuilder/blob/main/doc/sphinx/bibliography.bib), you will need to add its bibtex entry. Please format the citation tag as:
 
 - `firstauthor_year` for one author
 - `firstauthor+secondauthor_year` for two authors
